@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "strict": true,
+    "erasableSyntaxOnly": true,
+    "sourceMap": true,
+    "types": ["node"],
+    "lib": ["es2020", "ESNext", "dom"],
+  }
+}
