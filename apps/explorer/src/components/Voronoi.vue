@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import { voronoi } from 'voronoi'
-import { computed, ref } from 'vue'
+import { computed, ref, watchEffect } from 'vue'
 
-const width = ref(600)
+const width = ref(900)
 const height = ref(600)
-const count = ref(500)
+const count = ref(9000)
 const pointsAlgorithm = ref<'random' | 'poisson'>('random')
 const relaxationMode = ref<'voronoi' | 'lloyd' | 'points'>('lloyd')
 
-const { delaunator, points, polygons } = voronoi({
+const { delaunator, points, polygons, color } = voronoi({
   width,
   height,
   count,
@@ -35,11 +35,24 @@ function getSideFill(index: number) {
   return 'transparent'
 }
 
-const hidePoints = ref(false)
+function getColorByHeight(height: number, index: number) {
+
+  if (hoveredSide.value === index) {
+    return 'lightblue'
+  }
+  if (neighborSides.value.includes(index)) {
+    return 'lightgreen'
+  }
+  return color(1 - height)
+}
+
+const hidePoints = ref(true)
 
 const togglePointsAlgorithm = () => {
   pointsAlgorithm.value = pointsAlgorithm.value === 'random' ? 'poisson' : 'random'
 }
+
+const hideStroke = ref(true)
 </script>
 
 <template>
@@ -57,7 +70,7 @@ const togglePointsAlgorithm = () => {
           type="range"
           v-model="count"
           min="10"
-          max="6000"
+          max="10000"
           step="40"
           class="w-32"
         />
@@ -96,8 +109,8 @@ const togglePointsAlgorithm = () => {
           v-for="(polygon, index) in polygons"
           :key="index"
           :points="polygon.points"
-          :fill="getSideFill(index)"
-          stroke="black"
+          :fill="getColorByHeight(polygon.height, index)"
+          :stroke="hideStroke ? 'transparent' : 'black'"
           stroke-width="1"
           @mouseenter="handleMouseEnter(index)"
         />

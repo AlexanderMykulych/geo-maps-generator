@@ -1,9 +1,10 @@
 import { Delaunay } from 'd3-delaunay'
+import { scaleSequential } from 'd3-scale'
+import { interpolateSpectral } from 'd3-scale-chromatic'
 import type { MaybeRef } from 'vue'
 import { computed, toValue } from 'vue'
-import { generateRandomPoints } from './generateRandomPoints'
-import { generatePoissonDiscPoints } from './generatePoissonDiscPoints'
 import { generatePoints } from './generatePoints'
+import { generateHightMap } from './generateHightMap'
 
 type VoronoiOptions = {
   width: MaybeRef<number>
@@ -12,6 +13,12 @@ type VoronoiOptions = {
   lloydIterations: number
   pointsAlgorithm?: MaybeRef<'random' | 'poisson'>
   relaxationMode?: MaybeRef<'voronoi' | 'lloyd' | 'points'>
+}
+
+export type Polygon = {
+  coords: number[][]
+  points: string
+  index: number
 }
 
 export function voronoi(options: VoronoiOptions) {
@@ -50,15 +57,28 @@ export function voronoi(options: VoronoiOptions) {
   })
 
   const polygonsIterator = computed(() => delaunator.value.voronoi([0, 0, toValue(options.width), toValue(options.height)]).cellPolygons())
-  const polygons = computed(() => Array.from(polygonsIterator.value).map(x => ({
+  const polygons = computed<Polygon[]>(() => Array.from(polygonsIterator.value).map((x, index) => ({
     coords: x,
     points: x.join(' '),
+    index,
   })))
+
+  const hightMap = generateHightMap({
+    polygons,
+    delaunator,
+    initialPoints: computed(() => [{
+      index: Math.floor(polygons.value.length / 2),
+      height: 1,
+    }]),
+  })
+
+  const color = scaleSequential(interpolateSpectral)
 
   return {
     delaunator,
     points,
-    polygons,
+    polygons: hightMap,
+    color,
   }
 }
 
